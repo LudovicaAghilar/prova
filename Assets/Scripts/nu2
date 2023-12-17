@@ -1,0 +1,118 @@
+using TMPro;
+using System.Collections;
+using System.Collections.Generic;
+using UnityEngine;
+using UnityEngine.UI;
+using UnityEngine.SceneManagement;
+
+public class QuizManager : MonoBehaviour
+{
+     [SerializeField] public TextMeshProUGUI scoreText;
+     //[SerializeField] public TextMeshProUGUI endGameText;
+
+    public List<QuestionAndAnswers> QnA;
+    public GameObject[] options;
+    //public Button[] options;
+    public int currentQuestion;
+    public Text QuestionTxt;
+    public bool isCorrect = false;
+    private float score;
+    public float Score => score;
+    public GameObject Quizpanel;
+    public GameObject GoPanel;
+
+
+
+    public void correct(bool isCorrect)
+    {
+        if(isCorrect)
+        {
+            Debug.Log("Correct Answer");
+            score += 2;  // Increase the score by 2 for each correct answer
+            scoreText.text = Mathf.FloorToInt(score).ToString("D5");
+        }
+        else
+        {
+           Debug.Log("Wrong Answer");
+        }
+
+
+
+        QnA.RemoveAt(currentQuestion);
+        generateQuestion();
+
+         // Nascondi il messaggio di fine gioco quando una nuova domanda viene generata
+            Debug.Log("Setting End Game Text Active");
+            //endGameText.gameObject.SetActive(false);
+    }
+     private void Start()
+    {
+        score = 0;
+        GoPanel.SetActive(false);
+        generateQuestion();
+
+
+    }
+
+    public void retry()
+   {
+        SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex);
+   }
+     void GameOver()
+     {
+        Quizpanel.SetActive(false);
+        GoPanel.SetActive(true);
+     }
+
+    void SetAnswers()
+    {
+        for( int i = 0; i < options.Length; i++)
+        {
+            options[i].GetComponent<AnswerScript>().isCorrect = false;
+            options[i].transform.GetChild(0).GetComponent<Text>().text = QnA[currentQuestion].Answers[i];
+
+            if(QnA[currentQuestion].CorrectAnswer == i+1)
+            {
+                options[i].GetComponent<AnswerScript>().isCorrect = true;
+            }
+        }
+    }
+
+    private void Update()
+    {
+
+        scoreText.text = Mathf.FloorToInt(score).ToString("D5");
+    }
+
+    void generateQuestion()
+    {
+        if (QnA.Count > 0)
+        {
+
+            currentQuestion = Random.Range(0, QnA.Count);
+            QuestionTxt.text = QnA[currentQuestion].Question;
+            SetAnswers();
+        }
+        else
+        {
+
+        // Hai raggiunto l'ultima domanda, mostra il messaggio di fine gioco
+        QuestionTxt.text = "";
+        // endGameText.gameObject.SetActive(true);
+        scoreText.text = Mathf.FloorToInt(score).ToString("D5");
+
+
+        // Nascondi le opzioni di risposta
+            foreach (var option in options)
+            {
+                option.SetActive(false);
+            }
+            Debug.Log("out of questions");
+            GameOver();
+            //DisableButtons();
+
+        }
+    }
+
+
+}
